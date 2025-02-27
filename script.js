@@ -1,4 +1,3 @@
-    <script>
         // DOM Elements
         const setupSection = document.getElementById('setup');
         const timerSection = document.getElementById('timer');
