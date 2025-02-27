@@ -52,6 +52,7 @@ function startMeeting() {
         .split('\n')
         .map(name => name.trim())
         .filter(name => name !== '');
+    console.log("Participants: ", participants);
     
     if (participants.length === 0) {
         alert('Please enter at least one participant.');
@@ -63,9 +64,11 @@ function startMeeting() {
     
     // Get total meeting time
     const totalMinutes = parseInt(totalTimeInput.value) || 30;
+    console.log("Total Minutes: ", totalMinutes);
     
     // Calculate time per speaker in seconds
     timePerSpeaker = Math.floor((totalMinutes * 60) / participants.length);
+    console.log("Time per Speaker: ", timePerSpeaker);
     
     // Show the timer section, hide setup
     setupSection.style.display = 'none';
