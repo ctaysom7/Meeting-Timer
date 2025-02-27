@@ -28,7 +28,7 @@
             console.log("Initializing...");
             
             // Set default values
-            participantsInput.value = "Charlie\nChandler\nJace\nJustin";
+            // participantsInput.value = "Charlie\nChandler\nJace\nJustin";
             
             // Add event listeners
             startButton.addEventListener('click', function() {
