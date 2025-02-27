@@ -36,6 +36,7 @@
             timeRemaining = timePerSpeaker;
             updateTimerDisplay();
             startTimer();
+
 });
             
             prevButton.addEventListener('click', previousSpeaker);
