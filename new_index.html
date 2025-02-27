@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relay Meeting Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <span>Relay</span>
+        </div>
+        <div class="nav-item active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Today</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1>Meeting Timer</h1>
+        
+        <!-- Setup Section -->
+        <div class="setup-section" id="setup">
+            <div class="card">
+                <h2>Setup Your Meeting</h2>
+                <div>
+                    <label for="participants">Enter one participant name per line:</label>
+                    <textarea id="participants" placeholder="John Doe
+Jane Smith
+Sam Johnson"></textarea>
+                </div>
+                
+                <div>
+                    <label for="totalTime">Total Meeting Time (minutes):</label>
+                    <input type="number" id="totalTime" value="30" min="1" max="240">
+                </div>
+                
+                <button id="startButton">Start Meeting</button>
+            </div>
+        </div>
+        
+        <!-- Timer Section -->
+        <div class="timer-section" id="timer">
+            <div class="meeting-layout">
+                <div>
+                    <div class="card">
+                        <div class="timer-display">
+                            <div class="speaker-name" id="currentSpeaker">Speaker Name</div>
+                            <div class="time-remaining" id="timeDisplay">03:00</div>
+                            <div class="progress-bar">
+                                <div class="progress" id="progressBar"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="controls">
+                            <button id="prevButton">Previous</button>
+                            <button id="pauseButton">Pause</button>
+                            <button id="nextButton">Next</button>
+                        </div>
+                        
+                        <div>
+                            <h3>Speakers</h3>
+                            <div class="speakers-list" id="speakersList"></div>
+                        </div>
+                        
+                        <button id="resetButton">Reset Meeting</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card">
+                        <div class="sharing-header">Sharing</div>
+                        
+                        <div class="sharing-prompt">
+                            <div class="prompt-number">1.</div>
+                            <div>"Hi, I'm <span id="currentSpeakerPrompt">[name]</span>"</div>
+                        </div>
+                        
+                        <div class="sharing-prompt">
+                            <div class="prompt-number">2.</div>
+                            <div>"Today I'm at a [0-10] for emotional pain because..."</div>
+                        </div>
+                        
+                        <div class="sharing-prompt">
+                            <div class="prompt-number">3.</div>
+                            <div>Raw share</div>
+                            <ul class="tips-list">
+                                <li>"Something I've been learning lately..."</li>
+                                <li>"One way that I've been growing lately..."</li>
+                                <li>"Something that's been hard for me lately..."</li>
+                                <li>"Something that's been on my mind lately"</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Tips</h3>
+                        <ul class="tips-list">
+                            <li>Take turns going around — start with whoever has the highest emotional pain score</li>
+                            <li>Everyone should get the chance to share but can pass if desired</li>
+                            <li>When sharing, it can help to indicate whether you're looking to just be heard & validated, or if you're open to specific advice & input</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
