@@ -30,9 +30,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set default values
     participantsInput.value = "Charlie\nWhitney\nCarl\nJerry";
     
-    startButton.addEventListener('click', function() {
-        console.log("Start button clicked");
-        startMeeting();
+     // Add event listeners
+        startButton.addEventListener('click', function() {
+            console.log("Start button clicked");
+            startMeeting();
+
     });
     
     prevButton.addEventListener('click', previousSpeaker);
