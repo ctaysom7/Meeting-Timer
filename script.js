@@ -230,3 +230,55 @@ function resetMeeting() {
     progressBarElement.style.backgroundColor = 'var(--green)';
     speakersListElement.innerHTML = '';
 }
+
+// Optional: Add a sound effect for timer
+const timerSound = new Audio('data:audio/wav;base64,UklGRigCAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhggEAAHja42jiUGRQYlBlUGdQaFBpUGpQa1BsUG1Qf1CRUJFQk1CVUI9QmVCbUJ1Qn1ChUKNQpFCmUKdQqVCqUKtQrFCuUK9QsFCxULJQs1C0ULVQtlC3ULhQuVC6ULtQvFC9UL5Qv1DAUMFQwlDDUMRQxVDGUMdQyFDJUMpQy1DMUMUxSQAA');
+timerSound.volume = 0.5; // Adjust volume as needed
+
+// Modify the startTimer function to play sound when time is up
+function startTimer() {
+    clearInterval(timerInterval);
+    isPaused = false;
+    pauseButton.textContent = 'Pause';
+    
+    timerInterval = setInterval(() => {
+        if (timeRemaining <= 0) {
+            // Play sound when time is up
+            timerSound.play();
+            
+            // Rest of the existing code remains the same
+            clearInterval(timerInterval);
+            timeRemaining = 0;
+            updateTimerDisplay();
+            
+            completedSpeakers.add(participants[currentSpeakerIndex]);
+            updateSpeakersList();
+            
+            setTimeout(() => {
+                let nextIndex = currentSpeakerIndex;
+                let allCompleted = true;
+                
+                for (let i = 0; i < participants.length; i++) {
+                    nextIndex = (currentSpeakerIndex + i + 1) % participants.length;
+                    if (!completedSpeakers.has(participants[nextIndex])) {
+                        allCompleted = false;
+                        break;
+                    }
+                }
+                
+                if (allCompleted) {
+                    alert('All speakers have completed their turns!');
+                } else {
+                    currentSpeakerIndex = nextIndex;
+                    timeRemaining = timePerSpeaker;
+                    updateTimerDisplay();
+                    updateSpeakersList();
+                    startTimer();
+                }
+            }, 1000);
+        } else {
+            timeRemaining--;
+            updateTimerDisplay();
+        }
+    }, 1000);
+}
