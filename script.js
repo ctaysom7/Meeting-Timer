@@ -30,11 +30,13 @@
             // Set default values
             participantsInput.value = "Charlie\nWhitney\nCarl\nJerry";
             
-            // Add event listeners
-            startButton.addEventListener('click', function() {
-                console.log("Start button clicked");
-                startMeeting();
-            });
+           // Replace the existing event listener for speaker clicks with the following code
+        speakerElement.addEventListener('click', () => {
+            currentSpeakerIndex = index;
+            timeRemaining = timePerSpeaker;
+            updateTimerDisplay();
+            startTimer();
+});
             
             prevButton.addEventListener('click', previousSpeaker);
             pauseButton.addEventListener('click', togglePause);
