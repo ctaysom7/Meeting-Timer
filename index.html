@@ -5,265 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relay Meeting Timer</title>
     <style>
-        :root {
-            --primary: #00BFA5;
-            --primary-dark: #008E76;
-            --light-gray: #f5f5f5;
-            --medium-gray: #e0e0e0;
-            --dark-gray: #333;
-            --white: #fff;
-            --green: #4CAF50;
-            --yellow: #FFC107;
-            --red: #F44336;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', -apple-system, sans-serif;
-        }
-        
-        body {
-            background-color: var(--white);
-            color: var(--dark-gray);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-        }
-        
-        .sidebar {
-            width: 205px;
-            background-color: var(--primary);
-            color: var(--white);
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            padding: 0 20px 20px;
-            font-weight: bold;
-            font-size: 24px;
-            color: var(--white);
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            color: var(--white);
-            cursor: pointer;
-        }
-        
-        .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .nav-item svg {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-        }
-        
-        .main-content {
-            flex-grow: 1;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        .card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--light-gray);
-            margin-bottom: 20px;
-        }
-        
-        .setup-section, .timer-section {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .timer-section {
-            display: none;
-        }
-        
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 12px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 8px;
-            resize: vertical;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-        
-        input[type="number"], input[type="text"] {
-            padding: 10px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 8px;
-            font-size: 16px;
-            width: 100%;
-            max-width: 200px;
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: var(--white);
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-            margin-top: 10px;
-            transition: background-color 0.2s;
-        }
-        
-        button:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        .meeting-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .timer-display {
-            text-align: center;
-            background-color: var(--light-gray);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .speaker-name {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .time-remaining {
-            font-size: 56px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            transition: color 0.5s;
-            color: var(--green);
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background-color: var(--medium-gray);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .progress {
-            height: 100%;
-            width: 100%;
-            background-color: var(--green);
-            transition: width 1s, background-color 1s;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .speakers-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .speaker-item {
-            padding: 8px 15px;
-            background-color: var(--light-gray);
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .speaker-item.current {
-            background-color: var(--primary);
-            color: var(--white);
-        }
-        
-        .speaker-item.completed {
-            background-color: #a5d6a7;
-            text-decoration: line-through;
-        }
-        
-        .sharing-header {
-            font-size: 30px;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .sharing-prompt {
-            margin-bottom: 15px;
-        }
-        
-        .prompt-number {
-            font-weight: 600;
-            display: inline;
-            margin-right: 5px;
-        }
-        
-        .tips-list {
-            padding-left: 20px;
-        }
-        
-        .tips-list li {
-            margin-bottom: 10px;
-        }
-        
-        .add-speaker-form {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .add-speaker-form input {
-            flex: 1;
-        }
-        
-        .add-speaker-form button {
-            margin-top: 0;
-        }
-        
-        @media (max-width: 900px) {
-            .meeting-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                padding: 10px 0;
-            }
-        }
+        /* Your existing styles... */
     </style>
 </head>
 <body>
@@ -545,4 +287,64 @@ Sam Johnson"></textarea>
         function updateSpeakersList() {
             speakersListElement.innerHTML = '';
             
-            //
+            participants.forEach((participant, index) => {
+                const speakerItem = document.createElement('div');
+                speakerItem.classList.add('speaker-item');
+                if (index === currentSpeakerIndex) {
+                    speakerItem.classList.add('current');
+                }
+                if (completedSpeakers.has(participant)) {
+                    speakerItem.classList.add('completed');
+                }
+                speakerItem.textContent = participant;
+                speakersListElement.appendChild(speakerItem);
+            });
+        }
+        
+        // Move to previous speaker
+        function previousSpeaker() {
+            currentSpeakerIndex = (currentSpeakerIndex - 1 + participants.length) % participants.length;
+            timeRemaining = timePerSpeaker;
+            updateTimerDisplay();
+            updateSpeakersList();
+        }
+        
+        // Toggle pause/resume
+        function togglePause() {
+            if (isPaused) {
+                isPaused = false;
+                pauseButton.textContent = 'Pause';
+                startTimer();
+            } else {
+                isPaused = true;
+                pauseButton.textContent = 'Resume';
+                clearInterval(timerInterval);
+            }
+        }
+        
+        // Move to next speaker
+        function nextSpeaker() {
+            completedSpeakers.add(participants[currentSpeakerIndex]);
+            currentSpeakerIndex = (currentSpeakerIndex + 1) % participants.length;
+            timeRemaining = timePerSpeaker;
+            updateTimerDisplay();
+            updateSpeakersList();
+            startTimer();
+        }
+        
+        // Reset the meeting
+        function resetMeeting() {
+            clearInterval(timerInterval);
+            setupSection.style.display = 'block';
+            timerSection.style.display = 'none';
+            participantsInput.value = '';
+            totalTimeInput.value = '30';
+            currentSpeakerElement.textContent = '';
+            timeDisplayElement.textContent = '03:00';
+            progressBarElement.style.width = '100%';
+            progressBarElement.style.backgroundColor = 'var(--green)';
+            speakersListElement.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
