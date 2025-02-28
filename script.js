@@ -1,4 +1,4 @@
-        // DOM Elements
+// DOM Elements
         const setupSection = document.getElementById('setup');
         const timerSection = document.getElementById('timer');
         const participantsInput = document.getElementById('participants');
@@ -33,6 +33,29 @@
             // Add event listeners
             startButton.addEventListener('click', function() {
                 console.log("Start button clicked");
+                const participants = document.getElementById('participants').value.split('\n').filter(name => name.trim() !== '');
+                const totalTime = document.getElementById('totalTime').value;
+
+                // Retrieve existing meetings from local storage
+                const meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+
+                // Create a new meeting entry
+                const newMeeting = {
+                    date: new Date().toISOString(),
+                    participants: participants,
+                    totalTime: totalTime
+                };
+
+                // Add the new meeting to the array
+                meetings.push(newMeeting);
+
+                // Save the updated meetings array to local storage
+                localStorage.setItem('meetings', JSON.stringify(meetings));
+
+                // Log to confirm data is saved
+                console.log('New meeting saved:', newMeeting);
+
+                // Redirect to the timer section or start the meeting
                 startMeeting();
             });
             
@@ -56,6 +79,10 @@
                 alert('Please enter at least one participant.');
                 return;
             }
+            
+            // Save participants to local storage
+            localStorage.setItem('meetingParticipants', JSON.stringify(participants));
+            localStorage.setItem('meetingTotalTime', totalTimeInput.value);
             
             // Reset completed speakers
             completedSpeakers = new Set();
