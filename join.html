@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Meeting - Relay</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .join-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            max-width: 100%;
+            padding: 12px;
+        }
+        
+        .join-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .secondary-button {
+            background-color: var(--medium-gray);
+            color: var(--dark-gray);
+        }
+        
+        .secondary-button:hover {
+            background-color: var(--light-gray);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <span>Relay</span>
+        </div>
+        <div class="nav-item">
+            <a href="index.html">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span>Today</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="history.html">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>History</span>
+            </a>
+        </div>
+        <div class="nav-item active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Join</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1>Join a Meeting</h1>
+        
+        <div class="join-container">
+            <div class="card">
+                <h2>Enter Meeting Details</h2>
+                
+                <div class="input-group">
+                    <label for="meetingCode">Meeting Code:</label>
+                    <input type="text" id="meetingCode" placeholder="Enter the code provided by the host">
+                </div>
+                
+                <div class="input-group">
+                    <label for="participantName">Your Name:</label>
+                    <input type="text" id="participantName" placeholder="Enter your name">
+                </div>
+                
+                <div class="input-group">
+                    <label for="emotionalPain">Emotional Pain (0-10):</label>
+                    <input type="range" id="emotionalPain" min="0" max="10" value="5">
+                    <div id="painValue" style="text-align: center; margin-top: 5px;">5</div>
+                </div>
+                
+                <div class="join-buttons">
+                    <button id="joinButton" class="primary-button">Join Meeting</button>
+                    <button id="createButton" class="secondary-button">Create New Meeting</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update pain value display when slider changes
+        const painSlider = document.getElementById('emotionalPain');
+        const painValue = document.getElementById('painValue');
+        
+        painSlider.addEventListener('input', function() {
+            painValue.textContent = this.value;
+        });
+        
+        // Handle join button click
+        document.getElementById('joinButton').addEventListener('click', function() {
+            const meetingCode = document.getElementById('meetingCode').value.trim();
+            const participantName = document.getElementById('participantName').value.trim();
+            const painScore = document.getElementById('emotionalPain').value;
+            
+            // Validate inputs
+            if (!meetingCode) {
+                alert('Please enter a meeting code');
+                return;
+            }
+            
+            if (!participantName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            // For now, store participant info in localStorage
+            const participant = {
+                name: participantName,
+                painScore: painScore
+            };
+            
+            // Store the participant
+            localStorage.setItem('currentParticipant', JSON.stringify(participant));
+            
+            // Store the meeting code
+            localStorage.setItem('currentMeetingCode', meetingCode);
+            
+            // Redirect to the meeting page
+            window.location.href = 'participant.html';
+        });
+        
+        // Handle create button click
+        document.getElementById('createButton').addEventListener('click', function() {
+            // Redirect to the host page
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

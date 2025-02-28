@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting - Relay</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <span>Relay</span>
+        </div>
+        <div class="nav-item active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Meeting</span>
+        </div>
+        <div class="nav-item">
+            <a href="join.html">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Join</span>
+            </a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="meeting-header">
+            <h1>Meeting: <span id="meetingCodeDisplay">Loading...</span></h1>
+            <div id="participantStatus">Joining as: <span id="participantNameDisplay">Loading...</span></div>
+        </div>
+        
+        <div class="meeting-layout">
+            <div>
+                <div class="card">
+                    <div class="timer-display">
+                        <div class="speaker-name" id="currentSpeaker">Waiting for meeting to start...</div>
+                        <div class="time-remaining" id="timeDisplay">--:--</div>
+                        <div class="progress-bar">
+                            <div class="progress" id="progressBar"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3>Participants</h3>
+                        <div class="speakers-list" id="speakersList">
+                            <div class="speaker-item">Waiting for participants to join...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="card">
+                    <div class="sharing-header">Sharing</div>
+                    
+                    <div class="sharing-prompt">
+                        <div class="prompt-number"><strong>Introduce Yourself</strong></div>
+                        <div>Hi, I'm <span id="currentSpeakerPrompt">[name]</span></div>
+                    </div>
+                    
+                    <div class="sharing-prompt">
+                        <div class="prompt-number"><strong>Emotional Pain</strong></div>
+                        <div>Today I'm at a [0-10] for emotional pain because...</div>
+                    </div>
+                    
+                    <div class="sharing-prompt">
+                        <div class="prompt-number"><strong>Raw Share</strong></div>
+                        <ul class="tips-list">
+                            <li>Something I've been learning lately...</li>
+                            <li>One way that I've been growing lately...</li>
+                            <li>Something that's been hard for me lately...</li>
+                            <li>Something that's been on my mind lately...</li>
+                            <li>My takeaway for this week...</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Meeting Chat</h3>
+                    <div id="chatMessages" style="height: 200px; overflow-y: auto; margin-bottom: 10px; padding: 10px; background-color: var(--light-gray); border-radius: 8px;">
+                        <div class="chat-message system-message">Welcome to the meeting! The host will start the session soon.</div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="chatInput" placeholder="Type a message..." style="flex-grow: 1;">
+                        <button id="sendButton">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get participant data and meeting code from localStorage
+            const participantData = JSON.parse(localStorage.getItem('currentParticipant') || '{}');
+            const meetingCode = localStorage.getItem('currentMeetingCode') || 'Unknown';
+            
+            // Display participant name and meeting code
+            document.getElementById('participantNameDisplay').textContent = participantData.name || 'Guest';
+            document.getElementById('meetingCodeDisplay').textContent = meetingCode;
+            
+            // For this initial implementation, we'll simulate a meeting with dummy data
+            // In a real implementation, this would connect to a server or use WebRTC
+            
+            // Simulate other participants joining
+            setTimeout(() => {
+                const dummyParticipants = ['Emma', 'Noah', 'Olivia', participantData.name || 'You'];
+                updateParticipantsList(dummyParticipants);
+                
+                // Add a system message about participants
+                addChatMessage('System', 'All participants have joined the meeting. Waiting for the host to start the timer.', true);
+            }, 2000);
+            
+            // Simulate meeting starting
+            setTimeout(() => {
+                // Update the current speaker
+                document.getElementById('currentSpeaker').textContent = 'Emma';
+                document.getElementById('currentSpeakerPrompt').textContent = 'Emma';
+                
+                // Start a dummy timer
+                startDummyTimer();
+                
+                // Add a system message
+                addChatMessage('System', 'Meeting has started! Emma is sharing first.', true);
+            }, 5000);
+            
+            // Handle chat functionality
+            document.getElementById('sendButton').addEventListener('click', sendChatMessage);
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+            
+            function sendChatMessage() {
+                const chatInput = document.getElementById('chatInput');
+                const message = chatInput.value.trim();
+                
+                if (message) {
+                    // Add the message to the chat
+                    addChatMessage(participantData.name || 'You', message);
+                    
+                    // Clear the input
+                    chatInput.value = '';
+                }
+            }
+            
+            function addChatMessage(sender, message, isSystem = false) {
+                const chatMessages = document.getElementById('chatMessages');
+                const messageElement = document.createElement('div');
+                messageElement.className = isSystem ? 'chat-message system-message' : 'chat-message';
+                messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+                
+                // Add styles for the message
+                messageElement.style.marginBottom = '8px';
+                messageElement.style.padding = '8px 12px';
+                messageElement.style.borderRadius = '8px';
+                
+                if (isSystem) {
+                    messageElement.style.backgroundColor = '#e0f7fa';
+                    messageElement.style.fontStyle = 'italic';
+                } else {
+                    messageElement.style.backgroundColor = 'white';
+                }
+                
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function updateParticipantsList(participants) {
+                const speakersList = document.getElementById('speakersList');
+                speakersList.innerHTML = '';
+                
+                participants.forEach(name => {
+                    const speakerElement = document.createElement('div');
+                    speakerElement.className = 'speaker-item';
+                    speakerElement.textContent = name;
+                    
+                    // Highlight the current user
+                    if (name === (participantData.name || 'You')) {
+                        speakerElement.style.border = '2px solid var(--primary)';
+                    }
+                    
+                    speakersList.appendChild(speakerElement);
+                });
+            }
+            
+            function startDummyTimer() {
+                let timeRemaining = 180; // 3 minutes
+                const timeDisplay = document.getElementById('timeDisplay');
+                const progressBar = document.getElementById('progressBar');
+                
+                // Format and display the initial time
+                timeDisplay.textContent = formatTime(timeRemaining);
+                
+                // Start the countdown
+                const timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        timeRemaining = 0;
+                        
+                        // Simulate moving to the next speaker
+                        setTimeout(() => {
+                            document.getElementById('currentSpeaker').textContent = 'Noah';
+                            document.getElementById('currentSpeakerPrompt').textContent = 'Noah';
+                            addChatMessage('System', 'Emma has finished. Noah is now sharing.', true);
+                            startDummyTimer();
+                        }, 1000);
+                    }
+                    
+                    // Update the display
+                    timeDisplay.textContent = formatTime(timeRemaining);
+                    
+                    // Update progress bar
+                    const percentComplete = 100 - (timeRemaining / 180 * 100);
+                    progressBar.style.width = `${100 - percentComplete}%`;
+                    
+                    // Update colors based on thresholds
+                    if (percentComplete >= 90) {
+                        timeDisplay.style.color = 'var(--red)';
+                        progressBar.style.backgroundColor = 'var(--red)';
+                    } else if (percentComplete >= 50) {
+                        timeDisplay.style.color = 'var(--yellow)';
+                        progressBar.style.backgroundColor = 'var(--yellow)';
+                    } else {
+                        timeDisplay.style.color = 'var(--green)';
+                        progressBar.style.backgroundColor = 'var(--green)';
+                    }
+                }, 1000);
+            }
+            
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+        });
+    </script>
+</body>
+</html>
