@@ -28,6 +28,18 @@
                 <span>History</span>
             </a>
         </div>
+        <!-- New Navigation Item for Join page -->
+        <div class="nav-item">
+            <a href="join.html">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Join</span>
+            </a>
+        </div>
     </div>
     
     <div class="main-content">
@@ -49,12 +61,28 @@ Sam Johnson"></textarea>
                     <input type="number" id="totalTime" value="30" min="1" max="240">
                 </div>
                 
+                <!-- New Meeting Code Section -->
+                <div>
+                    <label for="meetingCode">Meeting Code (share with participants):</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="meetingCode" readonly>
+                        <button id="generateCodeButton" type="button">Generate Code</button>
+                    </div>
+                    <p style="font-size: 14px; margin-top: 5px; color: #666;">Share this code with participants so they can join your meeting.</p>
+                </div>
+                
                 <button id="startButton">Start Meeting</button>
             </div>
         </div>
         
         <!-- Timer Section -->
         <div class="timer-section" id="timer">
+            <!-- New Meeting Information Banner -->
+            <div id="meetingInfo" style="margin-bottom: 20px; background-color: #e3f2fd; padding: 15px; border-radius: 8px;">
+                <div><strong>Meeting Code:</strong> <span id="activeCode">No code generated</span></div>
+                <div><strong>Participants:</strong> <span id="participantCount">0</span></div>
+            </div>
+            
             <div class="meeting-layout">
                 <div>
                     <div class="card">
@@ -121,5 +149,81 @@ Sam Johnson"></textarea>
     </div>
     
     <script src="script.js"></script>
+    <!-- Add link to meeting-data.js -->
+    <script src="meeting-data.js"></script>
+    
+    <!-- New Script for Meeting Code Generation -->
+    <script>
+        // Function to generate a random meeting code
+        function generateMeetingCode() {
+            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluded similar looking characters
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+
+        // Add event listener for the generate code button
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateCodeButton = document.getElementById('generateCodeButton');
+            if (generateCodeButton) {
+                generateCodeButton.addEventListener('click', function() {
+                    const codeInput = document.getElementById('meetingCode');
+                    codeInput.value = generateMeetingCode();
+                });
+            }
+            
+            // Modify the existing startButton event listener to include meeting code
+            const existingStartButton = document.getElementById('startButton');
+            if (existingStartButton) {
+                // Remove existing event listener if possible
+                const newStartButton = existingStartButton.cloneNode(true);
+                existingStartButton.parentNode.replaceChild(newStartButton, existingStartButton);
+                
+                newStartButton.addEventListener('click', function() {
+                    // Get meeting code or generate a new one if not present
+                    let meetingCode = document.getElementById('meetingCode').value;
+                    if (!meetingCode) {
+                        meetingCode = generateMeetingCode();
+                        document.getElementById('meetingCode').value = meetingCode;
+                    }
+                    
+                    // Display the meeting code in the timer section
+                    const activeCodeElement = document.getElementById('activeCode');
+                    if (activeCodeElement) {
+                        activeCodeElement.textContent = meetingCode;
+                    }
+                    
+                    // Get the rest of the meeting data
+                    const participants = document.getElementById('participants').value
+                        .split('\n')
+                        .map(name => name.trim())
+                        .filter(name => name !== '');
+                    
+                    const totalTime = document.getElementById('totalTime').value;
+                    
+                    // Update the participant count display
+                    const participantCountElement = document.getElementById('participantCount');
+                    if (participantCountElement) {
+                        participantCountElement.textContent = participants.length;
+                    }
+                    
+                    // Save meeting data if MeetingData is available
+                    if (window.MeetingData) {
+                        window.MeetingData.createMeeting(meetingCode, 'Host', totalTime);
+                        
+                        // Add each participant to the meeting
+                        participants.forEach(name => {
+                            window.MeetingData.addParticipant(meetingCode, name, 0);
+                        });
+                    }
+                    
+                    // Continue with the original startMeeting functionality
+                    startMeeting();
+                });
+            }
+        });
+    </script>
 </body>
 </html>
