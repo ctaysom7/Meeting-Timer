@@ -19,7 +19,7 @@
             <span>Meeting</span>
         </div>
         <div class="nav-item">
-            <a href="join.html">
+            <a href="index.html">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -34,7 +34,8 @@
     <div class="main-content">
         <div class="meeting-header">
             <h1>Meeting: <span id="meetingCodeDisplay">Loading...</span></h1>
-            <div id="participantStatus">Joining as: <span id="participantNameDisplay">Loading...</span></div>
+            <div id="participantStatus">Joined as: <span id="participantNameDisplay">Loading...</span></div>
+            <div id="hostBadge" style="display: none; background-color: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-top: 5px; display: inline-block;">Meeting Host</div>
         </div>
         
         <div class="meeting-layout">
@@ -48,12 +49,22 @@
                         </div>
                     </div>
                     
+                    <div id="controlsSection" style="display: none;">
+                        <div class="controls">
+                            <button id="prevButton">Previous</button>
+                            <button id="pauseButton">Pause</button>
+                            <button id="nextButton">Next</button>
+                        </div>
+                    </div>
+                    
                     <div>
                         <h3>Participants</h3>
                         <div class="speakers-list" id="speakersList">
                             <div class="speaker-item">Waiting for participants to join...</div>
                         </div>
                     </div>
+                    
+                    <button id="leaveButton">Leave Meeting</button>
                 </div>
             </div>
             
@@ -86,7 +97,9 @@
                 <div class="card">
                     <h3>Meeting Chat</h3>
                     <div id="chatMessages" style="height: 200px; overflow-y: auto; margin-bottom: 10px; padding: 10px; background-color: var(--light-gray); border-radius: 8px;">
-                        <div class="chat-message system-message">Welcome to the meeting! The host will start the session soon.</div>
+                        <div class="chat-message system-message" style="margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; background-color: #e0f7fa; font-style: italic;">
+                            <strong>System:</strong> Welcome to the meeting! Waiting for more participants to join.
+                        </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="chatInput" placeholder="Type a message..." style="flex-grow: 1;">
@@ -97,40 +110,137 @@
         </div>
     </div>
     
+    <script src="meeting-data.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get participant data and meeting code from localStorage
             const participantData = JSON.parse(localStorage.getItem('currentParticipant') || '{}');
             const meetingCode = localStorage.getItem('currentMeetingCode') || 'Unknown';
+            const isHost = localStorage.getItem('isHost') === 'true';
             
             // Display participant name and meeting code
             document.getElementById('participantNameDisplay').textContent = participantData.name || 'Guest';
             document.getElementById('meetingCodeDisplay').textContent = meetingCode;
             
-            // For this initial implementation, we'll simulate a meeting with dummy data
-            // In a real implementation, this would connect to a server or use WebRTC
+            // Show host badge if the user is the host
+            if (isHost) {
+                document.getElementById('hostBadge').style.display = 'inline-block';
+                document.getElementById('controlsSection').style.display = 'block';
+            }
             
-            // Simulate other participants joining
-            setTimeout(() => {
-                const dummyParticipants = ['Emma', 'Noah', 'Olivia', participantData.name || 'You'];
-                updateParticipantsList(dummyParticipants);
-                
-                // Add a system message about participants
-                addChatMessage('System', 'All participants have joined the meeting. Waiting for the host to start the timer.', true);
-            }, 2000);
+            // Initialize meeting data
+            let speakersList = [];
+            let currentSpeaker = '';
+            let timeRemaining = 0;
+            let totalTime = 0;
             
-            // Simulate meeting starting
-            setTimeout(() => {
-                // Update the current speaker
-                document.getElementById('currentSpeaker').textContent = 'Emma';
-                document.getElementById('currentSpeakerPrompt').textContent = 'Emma';
+            // Poll for meeting updates
+            function pollMeetingData() {
+                if (!window.MeetingData) {
+                    setTimeout(pollMeetingData, 1000);
+                    return;
+                }
                 
-                // Start a dummy timer
-                startDummyTimer();
+                const meeting = window.MeetingData.getMeeting(meetingCode);
+                if (!meeting) {
+                    addChatMessage('System', 'Meeting not found or has ended. Please join a different meeting.', true);
+                    return;
+                }
                 
-                // Add a system message
-                addChatMessage('System', 'Meeting has started! Emma is sharing first.', true);
-            }, 5000);
+                // Update participants list
+                updateParticipantsList(meeting.participants);
+                
+                // Update current speaker and timer
+                if (meeting.currentSpeaker && meeting.currentSpeaker !== currentSpeaker) {
+                    currentSpeaker = meeting.currentSpeaker;
+                    document.getElementById('currentSpeaker').textContent = currentSpeaker;
+                    document.getElementById('currentSpeakerPrompt').textContent = currentSpeaker;
+                    
+                    // Add a system message
+                    addChatMessage('System', `${currentSpeaker} is now sharing.`, true);
+                }
+                
+                // Update timer
+                if (meeting.timeRemaining !== undefined) {
+                    timeRemaining = meeting.timeRemaining;
+                    updateTimerDisplay(timeRemaining, meeting.isPaused);
+                }
+                
+                // Poll again after a delay
+                setTimeout(pollMeetingData, 2000);
+            }
+            
+            // Start polling
+            pollMeetingData();
+            
+            // Update timer display
+            function updateTimerDisplay(seconds, isPaused) {
+                const timeDisplay = document.getElementById('timeDisplay');
+                const progressBar = document.getElementById('progressBar');
+                
+                // Format time as MM:SS
+                const minutes = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                timeDisplay.textContent = formattedTime + (isPaused ? ' (Paused)' : '');
+                
+                // Update progress bar if we have total time info
+                if (totalTime > 0) {
+                    const percentComplete = 100 - (seconds / totalTime * 100);
+                    progressBar.style.width = `${100 - percentComplete}%`;
+                    
+                    // Update colors based on thresholds
+                    if (percentComplete >= 90) {
+                        timeDisplay.style.color = 'var(--red)';
+                        progressBar.style.backgroundColor = 'var(--red)';
+                    } else if (percentComplete >= 50) {
+                        timeDisplay.style.color = 'var(--yellow)';
+                        progressBar.style.backgroundColor = 'var(--yellow)';
+                    } else {
+                        timeDisplay.style.color = 'var(--green)';
+                        progressBar.style.backgroundColor = 'var(--green)';
+                    }
+                }
+            }
+            
+            // Update participants list
+            function updateParticipantsList(participants) {
+                const speakersList = document.getElementById('speakersList');
+                speakersList.innerHTML = '';
+                
+                if (!participants || participants.length === 0) {
+                    const emptyItem = document.createElement('div');
+                    emptyItem.className = 'speaker-item';
+                    emptyItem.textContent = 'No participants yet';
+                    speakersList.appendChild(emptyItem);
+                    return;
+                }
+                
+                participants.forEach(participant => {
+                    const speakerElement = document.createElement('div');
+                    speakerElement.className = 'speaker-item';
+                    
+                    // Highlight current speaker
+                    if (participant.name === currentSpeaker) {
+                        speakerElement.classList.add('current');
+                    }
+                    
+                    // Highlight the current user
+                    if (participant.name === participantData.name) {
+                        speakerElement.style.border = '2px solid var(--primary)';
+                    }
+                    
+                    // Display pain score if available
+                    if (participant.painScore !== undefined) {
+                        speakerElement.textContent = `${participant.name} (${participant.painScore})`;
+                    } else {
+                        speakerElement.textContent = participant.name;
+                    }
+                    
+                    speakersList.appendChild(speakerElement);
+                });
+            }
             
             // Handle chat functionality
             document.getElementById('sendButton').addEventListener('click', sendChatMessage);
@@ -145,8 +255,13 @@
                 const message = chatInput.value.trim();
                 
                 if (message) {
-                    // Add the message to the chat
+                    // Add the message to the chat locally
                     addChatMessage(participantData.name || 'You', message);
+                    
+                    // Add to meeting data if available
+                    if (window.MeetingData) {
+                        window.MeetingData.addChatMessage(meetingCode, participantData.name || 'Anonymous', message);
+                    }
                     
                     // Clear the input
                     chatInput.value = '';
@@ -175,75 +290,38 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
             
-            function updateParticipantsList(participants) {
-                const speakersList = document.getElementById('speakersList');
-                speakersList.innerHTML = '';
+            // Handle timer controls (only for host)
+            if (isHost) {
+                document.getElementById('prevButton').addEventListener('click', function() {
+                    // Handle previous speaker
+                });
                 
-                participants.forEach(name => {
-                    const speakerElement = document.createElement('div');
-                    speakerElement.className = 'speaker-item';
-                    speakerElement.textContent = name;
-                    
-                    // Highlight the current user
-                    if (name === (participantData.name || 'You')) {
-                        speakerElement.style.border = '2px solid var(--primary)';
-                    }
-                    
-                    speakersList.appendChild(speakerElement);
+                document.getElementById('pauseButton').addEventListener('click', function() {
+                    // Handle pause/resume
+                });
+                
+                document.getElementById('nextButton').addEventListener('click', function() {
+                    // Handle next speaker
                 });
             }
             
-            function startDummyTimer() {
-                let timeRemaining = 180; // 3 minutes
-                const timeDisplay = document.getElementById('timeDisplay');
-                const progressBar = document.getElementById('progressBar');
-                
-                // Format and display the initial time
-                timeDisplay.textContent = formatTime(timeRemaining);
-                
-                // Start the countdown
-                const timerInterval = setInterval(() => {
-                    timeRemaining--;
-                    
-                    if (timeRemaining <= 0) {
-                        clearInterval(timerInterval);
-                        timeRemaining = 0;
-                        
-                        // Simulate moving to the next speaker
-                        setTimeout(() => {
-                            document.getElementById('currentSpeaker').textContent = 'Noah';
-                            document.getElementById('currentSpeakerPrompt').textContent = 'Noah';
-                            addChatMessage('System', 'Emma has finished. Noah is now sharing.', true);
-                            startDummyTimer();
-                        }, 1000);
+            // Handle leave meeting button
+            document.getElementById('leaveButton').addEventListener('click', function() {
+                if (confirm('Are you sure you want to leave the meeting?')) {
+                    // If user is host, end the meeting
+                    if (isHost && window.MeetingData) {
+                        window.MeetingData.endMeeting(meetingCode);
                     }
                     
-                    // Update the display
-                    timeDisplay.textContent = formatTime(timeRemaining);
+                    // Clear local storage
+                    localStorage.removeItem('currentParticipant');
+                    localStorage.removeItem('currentMeetingCode');
+                    localStorage.removeItem('isHost');
                     
-                    // Update progress bar
-                    const percentComplete = 100 - (timeRemaining / 180 * 100);
-                    progressBar.style.width = `${100 - percentComplete}%`;
-                    
-                    // Update colors based on thresholds
-                    if (percentComplete >= 90) {
-                        timeDisplay.style.color = 'var(--red)';
-                        progressBar.style.backgroundColor = 'var(--red)';
-                    } else if (percentComplete >= 50) {
-                        timeDisplay.style.color = 'var(--yellow)';
-                        progressBar.style.backgroundColor = 'var(--yellow)';
-                    } else {
-                        timeDisplay.style.color = 'var(--green)';
-                        progressBar.style.backgroundColor = 'var(--green)';
-                    }
-                }, 1000);
-            }
-            
-            function formatTime(seconds) {
-                const minutes = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            }
+                    // Redirect to join page
+                    window.location.href = 'index.html';
+                }
+            });
         });
     </script>
 </body>
