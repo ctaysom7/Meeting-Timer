@@ -28,29 +28,47 @@ let meetingCode = ""; // Store the current meeting code
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Initializing...");
     
-    // Set default values
-    // participantsInput.value = "Charlie\nChandler\nJace\nJustin";
-    
-    // Add event listener for generate code button if it exists
+    // Generate a meeting code by default
     const generateCodeButton = document.getElementById('generateCodeButton');
     if (generateCodeButton) {
         generateCodeButton.addEventListener('click', function() {
             const codeInput = document.getElementById('meetingCode');
             codeInput.value = generateMeetingCode();
         });
+        
+        // Generate code automatically
+        generateCodeButton.click();
     }
     
     // Add event listeners
     startButton.addEventListener('click', function() {
         console.log("Start button clicked");
-        const participants = document.getElementById('participants').value.split('\n').filter(name => name.trim() !== '');
-        const totalTime = document.getElementById('totalTime').value;
-
-        // Get or generate a meeting code
+        
+        // Get host name
+        const hostName = document.getElementById('hostName')?.value.trim() || 'Host';
+        if (!hostName) {
+            alert('Please enter your name as the host');
+            return;
+        }
+        
+        // Get meeting code
         meetingCode = document.getElementById('meetingCode')?.value || generateMeetingCode();
         if (document.getElementById('meetingCode')) {
             document.getElementById('meetingCode').value = meetingCode;
         }
+        
+        // Get participants from textarea
+        const participants = participantsInput.value
+            .split('\n')
+            .map(name => name.trim())
+            .filter(name => name !== '');
+        
+        if (participants.length === 0) {
+            alert('Please enter at least one participant (usually yourself as the host).');
+            return;
+        }
+        
+        const totalTime = totalTimeInput.value;
         
         // Update the active code display if it exists
         const activeCodeElement = document.getElementById('activeCode');
@@ -72,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
             date: new Date().toISOString(),
             participants: participants,
             totalTime: totalTime,
-            code: meetingCode
+            code: meetingCode,
+            host: hostName
         };
 
         // Add the new meeting to the array
@@ -83,16 +102,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Save the current meeting code for remote connections
         localStorage.setItem('currentMeetingCode', meetingCode);
+        localStorage.setItem('isHost', 'true');
 
         // Log to confirm data is saved
         console.log('New meeting saved:', newMeeting);
         
         // Create meeting in MeetingData if available
         if (window.MeetingData) {
-            window.MeetingData.createMeeting(meetingCode, 'Host', totalTime);
+            window.MeetingData.createMeeting(meetingCode, hostName, totalTime);
             
             // Add each participant to the meeting
             participants.forEach(name => {
+                // Add emotional pain score of 0 for now (can be updated later)
                 window.MeetingData.addParticipant(meetingCode, name, 0);
             });
         }
@@ -368,92 +389,95 @@ function updateSpeakersList() {
         speakersListElement.appendChild(speakerElement);
     });
     
-    // Add the "+ Add" button and input field at the end
-    const addButton = document.createElement('div');
-    addButton.className = 'speaker-item';
-    addButton.textContent = '+ Add';
-    addButton.style.cursor = 'pointer';
-    addButton.id = 'addSpeakerButton';
-    
-    // Add input field (hidden by default)
-    const inputField = document.createElement('input');
-    inputField.type = 'text';
-    inputField.id = 'newSpeakerName';
-    inputField.placeholder = 'New speaker name';
-    inputField.style.display = 'none';
-    inputField.style.marginRight = '10px';
-    inputField.style.padding = '8px';
-    inputField.style.borderRadius = '8px';
-    inputField.style.border = '1px solid var(--medium-gray)';
-    
-    // Create a container for the add button and input
-    const addContainer = document.createElement('div');
-    addContainer.style.display = 'flex';
-    addContainer.style.alignItems = 'center';
-    addContainer.appendChild(inputField);
-    addContainer.appendChild(addButton);
-    
-    speakersListElement.appendChild(addContainer);
-    
-    // Add event listener for the add button
-    document.getElementById('addSpeakerButton').addEventListener('click', function() {
-        const inputField = document.getElementById('newSpeakerName');
+    // Only add the "Add" button if the user is the host
+    if (localStorage.getItem('isHost') === 'true') {
+        // Add the "+ Add" button and input field at the end
+        const addButton = document.createElement('div');
+        addButton.className = 'speaker-item';
+        addButton.textContent = '+ Add';
+        addButton.style.cursor = 'pointer';
+        addButton.id = 'addSpeakerButton';
         
-        // If input is hidden, show it and focus
-        if (inputField.style.display === 'none') {
-            inputField.style.display = 'inline-block';
-            inputField.focus();
-        } 
-        // If input is visible and has text, add the speaker
-        else if (inputField.value.trim() !== '') {
-            const newName = inputField.value.trim();
-            participants.push(newName);
+        // Add input field (hidden by default)
+        const inputField = document.createElement('input');
+        inputField.type = 'text';
+        inputField.id = 'newSpeakerName';
+        inputField.placeholder = 'New speaker name';
+        inputField.style.display = 'none';
+        inputField.style.marginRight = '10px';
+        inputField.style.padding = '8px';
+        inputField.style.borderRadius = '8px';
+        inputField.style.border = '1px solid var(--medium-gray)';
+        
+        // Create a container for the add button and input
+        const addContainer = document.createElement('div');
+        addContainer.style.display = 'flex';
+        addContainer.style.alignItems = 'center';
+        addContainer.appendChild(inputField);
+        addContainer.appendChild(addButton);
+        
+        speakersListElement.appendChild(addContainer);
+        
+        // Add event listener for the add button
+        document.getElementById('addSpeakerButton').addEventListener('click', function() {
+            const inputField = document.getElementById('newSpeakerName');
             
-            // Add to MeetingData if available
-            if (window.MeetingData && meetingCode) {
-                window.MeetingData.addParticipant(meetingCode, newName, 0);
+            // If input is hidden, show it and focus
+            if (inputField.style.display === 'none') {
+                inputField.style.display = 'inline-block';
+                inputField.focus();
+            } 
+            // If input is visible and has text, add the speaker
+            else if (inputField.value.trim() !== '') {
+                const newName = inputField.value.trim();
+                participants.push(newName);
+                
+                // Add to MeetingData if available
+                if (window.MeetingData && meetingCode) {
+                    window.MeetingData.addParticipant(meetingCode, newName, 0);
+                }
+                
+                // Recalculate time per speaker
+                const totalMinutes = parseInt(totalTimeInput.value) || 30;
+                timePerSpeaker = Math.floor((totalMinutes * 60) / participants.length);
+                
+                // Update displays
+                updateSpeakersList();
+                
+                // Clear the input field
+                inputField.value = '';
+                inputField.style.display = 'none';
             }
-            
-            // Recalculate time per speaker
-            const totalMinutes = parseInt(totalTimeInput.value) || 30;
-            timePerSpeaker = Math.floor((totalMinutes * 60) / participants.length);
-            
-            // Update displays
-            updateSpeakersList();
-            
-            // Clear the input field
-            inputField.value = '';
-            inputField.style.display = 'none';
-        }
-        // If input is visible but empty, just hide it
-        else {
-            inputField.style.display = 'none';
-        }
-    });
-    
-    // Add keypress event for the input field
-    document.getElementById('newSpeakerName').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            const newName = this.value.trim();
-            participants.push(newName);
-            
-            // Add to MeetingData if available
-            if (window.MeetingData && meetingCode) {
-                window.MeetingData.addParticipant(meetingCode, newName, 0);
+            // If input is visible but empty, just hide it
+            else {
+                inputField.style.display = 'none';
             }
-            
-            // Recalculate time per speaker
-            const totalMinutes = parseInt(totalTimeInput.value) || 30;
-            timePerSpeaker = Math.floor((totalMinutes * 60) / participants.length);
-            
-            // Update displays
-            updateSpeakersList();
-            
-            // Clear the input field
-            this.value = '';
-            this.style.display = 'none';
-        }
-    });
+        });
+        
+        // Add keypress event for the input field
+        document.getElementById('newSpeakerName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                const newName = this.value.trim();
+                participants.push(newName);
+                
+                // Add to MeetingData if available
+                if (window.MeetingData && meetingCode) {
+                    window.MeetingData.addParticipant(meetingCode, newName, 0);
+                }
+                
+                // Recalculate time per speaker
+                const totalMinutes = parseInt(totalTimeInput.value) || 30;
+                timePerSpeaker = Math.floor((totalMinutes * 60) / participants.length);
+                
+                // Update displays
+                updateSpeakersList();
+                
+                // Clear the input field
+                this.value = '';
+                this.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Move to the previous speaker
@@ -547,10 +571,8 @@ function nextSpeaker() {
 
 // Reset meeting
 function resetMeeting() {
-    if (confirm('Are you sure you want to reset the meeting?')) {
+    if (confirm('Are you sure you want to end the meeting?')) {
         clearInterval(timerInterval);
-        timerSection.style.display = 'none';
-        setupSection.style.display = 'block';
         
         // End meeting in MeetingData if available
         if (window.MeetingData && meetingCode) {
@@ -560,5 +582,9 @@ function resetMeeting() {
         // Clear the meeting code
         meetingCode = "";
         localStorage.removeItem('currentMeetingCode');
+        localStorage.removeItem('isHost');
+        
+        // Redirect to join/index page
+        window.location.href = 'index.html';
     }
 }
